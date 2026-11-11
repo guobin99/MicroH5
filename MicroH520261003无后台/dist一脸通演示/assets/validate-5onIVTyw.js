@@ -1,0 +1,1 @@
+import{c as e}from"./jsx-runtime-C-yevLp6.js";function t(e){return!!e&&typeof e==`object`&&typeof e.then==`function`}function n(){return e?/ios|iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()):!1}export{t as n,n as t};

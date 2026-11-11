@@ -1,0 +1,1 @@
+import{i as e}from"./rolldown-runtime-qXqUbbKo.js";import{s as t}from"./jsx-runtime-3hZu9l51.js";import"./use-props-value-CuV05tGp.js";var n=e(t());function r(e){let t=(0,n.useRef)(e);return t.current=e,t}var i=e=>{let t=r(e);(0,n.useEffect)(()=>()=>{t.current()},[])};export{r as n,i as t};

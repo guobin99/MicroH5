@@ -1,0 +1,1 @@
+import{i as e}from"./rolldown-runtime-qXqUbbKo.js";import{_ as t}from"./jsx-runtime-C-yevLp6.js";var n=e(t()),r=e=>(t,r)=>{let i=(0,n.useRef)(!1);e(()=>()=>{i.current=!1},[]),e(()=>{if(!i.current)i.current=!0;else return t()},r)};export{r as t};

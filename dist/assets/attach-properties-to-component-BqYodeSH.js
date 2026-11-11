@@ -1,0 +1,1 @@
+function e(e,t){let n=e;for(let e in t)t.hasOwnProperty(e)&&(n[e]=t[e]);return n}export{e as t};

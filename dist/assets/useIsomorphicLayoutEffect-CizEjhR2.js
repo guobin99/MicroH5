@@ -1,0 +1,1 @@
+import{i as e}from"./rolldown-runtime-qXqUbbKo.js";import{s as t}from"./jsx-runtime-3hZu9l51.js";import{t as n}from"./isBrowser-GV-O3yDf.js";var r=e(t()),i=e=>(t,n)=>{let i=(0,r.useRef)(!1);e(()=>()=>{i.current=!1},[]),e(()=>{if(!i.current)i.current=!0;else return t()},n)},a=n?r.useLayoutEffect:()=>{};export{i as n,a as t};

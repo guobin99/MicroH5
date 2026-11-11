@@ -1,0 +1,1 @@
+function e(e,t,n){let r=e;return t!==void 0&&(r=Math.max(e,t)),n!==void 0&&(r=Math.min(r,n)),r}export{e as t};
