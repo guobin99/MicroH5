@@ -4,6 +4,7 @@ import { Button, Card, Checkbox, Input, Modal, NavBar, Picker, SearchBar, TextAr
 import { CameraOutlined, CheckCircleFilled, SearchOutlined, UserOutlined } from '@ant-design/icons';
 import { useApp } from '../context/AppContext';
 import { m } from '../lib/api';
+import VisitorPrivacyModal from '../components/VisitorPrivacyModal';
 
 // 访客类型：与「访客预约」保持一致，写入 VisitorApply.visitor_type
 const visitorTypes = ['供应商', '客户', '合作伙伴', '个人访客', '临时访客'].map((item) => ({ label: item, value: item }));
@@ -42,6 +43,7 @@ export default function VisitorRegister(): React.JSX.Element {
   const [photo, setPhoto] = useState('');
   const [photoOpen, setPhotoOpen] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [policyOpen, setPolicyOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // 先输入再查：空关键字不请求，避免一进页面就甩出 20 个无关人员（也少暴露一层人员名单）
@@ -263,7 +265,11 @@ export default function VisitorRegister(): React.JSX.Element {
 
             <div className="flex items-start gap-2">
               <Checkbox checked={agreed} onChange={setAgreed} />
-              <span className="text-xs text-gray-500 leading-5">我已阅读并同意《访客隐私授权协议》，同意为本次来访登记提供上述信息。</span>
+              <span className="text-xs text-gray-500 leading-5">
+                我已阅读并同意
+                <button type="button" className="text-[#0064E6] underline" onClick={() => setPolicyOpen(true)}>《访客隐私授权协议》</button>
+                ，同意为本次来访登记提供上述信息。
+              </span>
             </div>
             <Button block color="primary" size="large" loading={loading} className="!rounded-full !h-12" onClick={submit}>提交登记</Button>
           </div>
@@ -287,6 +293,12 @@ export default function VisitorRegister(): React.JSX.Element {
         closeOnAction
         actions={[{ key: 'close', text: '关闭', primary: true }]}
         onClose={() => setPhotoOpen(false)}
+      />
+
+      <VisitorPrivacyModal
+        visible={policyOpen}
+        onClose={() => setPolicyOpen(false)}
+        onAgree={() => { setAgreed(true); setPolicyOpen(false); }}
       />
     </div>
   );

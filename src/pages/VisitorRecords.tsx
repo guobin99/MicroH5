@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'wouter';
-import { Button, Card, Dialog, Empty, Modal, NavBar, Radio, Tabs, Tag, Toast } from 'antd-mobile';
+import { Button, Card, Dialog, Empty, Modal, NavBar, Radio, SpinLoading, Tabs, Tag, Toast } from 'antd-mobile';
 import { CheckCircleOutlined, LoginOutlined, PictureOutlined, QrcodeOutlined, UserAddOutlined } from '@ant-design/icons';
 import { QRCodeSVG } from 'qrcode.react';
 import TimeRangeFilter, { matchTimeRange, type TimeRange } from '../components/TimeRangeFilter';
@@ -25,10 +25,14 @@ export default function VisitorRecords(): React.JSX.Element {
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [credential, setCredential] = useState<VisitorRecord | null>(null);
+  // 二维码内容（签名 token）由后台下发，图片在本机生成；状态、有效期、失败原因都以服务端返回为准
+  const [qr, setQr] = useState<{ loading: boolean; content: string; error: string; expireAt: string }>({
+    loading: false, content: '', error: '', expireAt: '',
+  });
   const [photoView, setPhotoView] = useState('');
 
   // 签到时若该单还没有临时卡，给一次选卡机会（也可以不选，只发二维码）
-  const [cards, setCards] = useState<{ cardNo: string; remark: string }[]>([]);
+  const [cards, setCards] = useState<{ cardNo: string; remark?: string; personName?: string }[]>([]);
   const [checkinTarget, setCheckinTarget] = useState<VisitorRecord | null>(null);
   const [cardChoice, setCardChoice] = useState('');
 
@@ -38,6 +42,35 @@ export default function VisitorRecords(): React.JSX.Element {
       .catch(() => setCards([]));
   };
   useEffect(() => { loadCards(); }, []);
+
+  // 通行凭证：后台只下发二维码内容（签名 token），图片由本机用 qrcode.react 画
+  const loadQr = (id: string): void => {
+    setQr({ loading: true, content: '', error: '', expireAt: '' });
+    m.visitorQrcode(id)
+      .then((res: any) => {
+        if (!res || res.success === false) {
+          // detail 是后端给的排查信息，只打到控制台，不打扰用户
+          if (res && res.detail) console.warn('[visitor qrcode]', res.code, res.detail);
+          setQr({ loading: false, content: '', error: (res && (res.msg || res.message)) || '二维码凭证暂不可用', expireAt: '' });
+          return;
+        }
+        const content: string = res.content || res.token || '';
+        setQr({
+          loading: false,
+          content,
+          error: content ? '' : '后台未返回二维码内容，请重试',
+          expireAt: res.expireAt || '',
+        });
+      })
+      .catch((err: any) => {
+        setQr({ loading: false, content: '', error: err?.message || '二维码内容获取失败，请检查网络后重试', expireAt: '' });
+      });
+  };
+
+  const openCredential = (record: VisitorRecord): void => {
+    setCredential(record);
+    loadQr(record.id);
+  };
 
   const filtered = useMemo(() => visitorRecords
     .filter((item) => status === 'all' || item.status === status)
@@ -198,7 +231,7 @@ export default function VisitorRecords(): React.JSX.Element {
 
             {record.canHandle && (record.status === 'approved' || record.status === 'checkedin') && (
               <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
-                <Button size="small" fill="outline" className="flex-1" onClick={() => setCredential(record)}>
+                <Button size="small" fill="outline" className="flex-1" onClick={() => openCredential(record)}>
                   <QrcodeOutlined /> 通行凭证
                 </Button>
                 {record.status === 'approved' ? (
@@ -223,33 +256,37 @@ export default function VisitorRecords(): React.JSX.Element {
         title="访客通行凭证"
         content={credential && (
           <div className="text-center">
-            {credential.visitToken ? (
-              <div className="inline-block p-4 bg-white rounded-2xl border border-gray-100 shadow-inner">
-                <QRCodeSVG value={credential.visitToken} size={180} level="H" />
+            {qr.loading && (
+              <div className="py-10 flex flex-col items-center gap-2">
+                <SpinLoading color="primary" />
+                <span className="text-xs text-gray-500">正在获取二维码内容…</span>
               </div>
-            ) : (
+            )}
+            {!qr.loading && qr.content && (
+              <div className="inline-block p-4 bg-white rounded-2xl border border-gray-100 shadow-inner">
+                <QRCodeSVG value={qr.content} size={180} level="H" />
+              </div>
+            )}
+            {!qr.loading && !qr.content && (
               <div className="py-6">
-                <div className="text-sm text-gray-700">当前没有可用的二维码凭证</div>
-                <div className="text-xs text-gray-500 mt-2 leading-5">
-                  {credential.status === 'pending' && '预约还在审批中，审批通过后才会生成二维码凭证。'}
-                  {credential.status === 'rejected' && '预约已被驳回，凭证不生成。'}
-                  {credential.status === 'expired' && '已超过预约时段，凭证已失效；如需来访请重新预约。'}
-                  {credential.status === 'completed' && '访客已签离，凭证已失效。'}
-                  {(credential.status === 'approved' || credential.status === 'checkedin') && '凭证生成异常，请下拉刷新后重试；仍不行请联系管理员。'}
-                </div>
+                <div className="text-sm text-gray-700">{qr.error || '当前没有可用的二维码凭证'}</div>
+                <Button size="small" fill="outline" className="mt-3" onClick={() => loadQr(credential.id)}>
+                  重新获取
+                </Button>
               </div>
             )}
             {credential.cardNo && (
               <div className="text-xl font-bold font-mono mt-4">临时卡 {credential.cardNo}</div>
             )}
-            {!credential.visitToken && credential.passCode && (
+            {!qr.loading && !qr.content && credential.passCode && (
               <div className="text-sm text-gray-600 mt-3">预约码 <span className="font-mono font-bold">{credential.passCode}</span>（可报给前台核对）</div>
             )}
             {!credential.cardNo && (
               <div className="text-xs text-orange-600 mt-3">未分配临时卡（卡池为空），本次仅支持二维码核验</div>
             )}
             <div className="text-xs text-gray-500 mt-2">{credential.visitDate} {credential.visitTime} · {credential.department || '—'}</div>
-            <div className="text-xs text-gray-400 mt-1">二维码仅在本时段内有效，可截图分享给访客；签离后立即失效。</div>
+            {qr.expireAt && <div className="text-xs text-gray-500 mt-1">凭证有效期至 {qr.expireAt}</div>}
+            <div className="text-xs text-gray-400 mt-1">二维码内容由系统后台签发，仅在本时段内有效，可截图分享给访客；签离后立即失效。</div>
           </div>
         )}
         closeOnAction
@@ -271,7 +308,7 @@ export default function VisitorRecords(): React.JSX.Element {
                 <Radio value="">自动分配空闲卡</Radio>
                 {cards.map((c) => (
                   <Radio key={c.cardNo} value={c.cardNo}>
-                    指定卡号 {c.cardNo}{c.remark ? `（${c.remark}）` : ''}
+                    指定卡号 {c.cardNo}{c.personName || c.remark ? `（${c.personName || c.remark}）` : ''}
                   </Radio>
                 ))}
               </div>

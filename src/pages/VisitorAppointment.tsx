@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { Button, Card, Checkbox, Input, Modal, NavBar, Picker, TextArea, Toast } from 'antd-mobile';
 import { CameraOutlined, ShareAltOutlined, UserAddOutlined } from '@ant-design/icons';
 import { useApp } from '../context/AppContext';
+import VisitorPrivacyModal from '../components/VisitorPrivacyModal';
 
 // 访客类型：写入 VisitorApply.visitor_type（中文，便于后台报表）
 const visitorTypes = ['供应商', '客户', '合作伙伴', '个人访客', '临时访客'].map((item) => ({ label: item, value: item }));
@@ -25,6 +26,7 @@ export default function VisitorAppointment(): React.JSX.Element {
   const [photo, setPhoto] = useState('');
   const [photoOpen, setPhotoOpen] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [policyOpen, setPolicyOpen] = useState(false);
   const [typeVisible, setTypeVisible] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -149,7 +151,11 @@ export default function VisitorAppointment(): React.JSX.Element {
 
             <div className="flex items-start gap-2 pt-1">
               <Checkbox checked={agreed} onChange={setAgreed} />
-              <span className="text-xs text-gray-500 leading-5">我已阅读并同意《访客隐私授权协议》，并确认访客知悉其个人信息仅用于本次来访核验。</span>
+              <span className="text-xs text-gray-500 leading-5">
+                我已阅读并同意
+                <button type="button" className="text-[#0064E6] underline" onClick={() => setPolicyOpen(true)}>《访客隐私授权协议》</button>
+                ，并确认访客知悉其个人信息仅用于本次来访核验。
+              </span>
             </div>
 
             <Button block color="primary" size="large" loading={loading} className="!rounded-full !h-12" onClick={submit}>提交预约审批</Button>
@@ -166,6 +172,12 @@ export default function VisitorAppointment(): React.JSX.Element {
         closeOnAction
         actions={[{ key: 'close', text: '关闭', primary: true }]}
         onClose={() => setPhotoOpen(false)}
+      />
+
+      <VisitorPrivacyModal
+        visible={policyOpen}
+        onClose={() => setPolicyOpen(false)}
+        onAgree={() => { setAgreed(true); setPolicyOpen(false); }}
       />
 
       <Picker

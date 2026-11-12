@@ -225,6 +225,9 @@ export const m = {
   visitorRevoke: (id: string) => api('/m/visitor/revoke', { method: 'POST', body: { id } }),
   // 凭证核验（前台/门点扫码，匿名）
   visitorVerify: (token: string) => api(`/m/visitor/verify?token=${encodeURIComponent(token)}`),
+  // 通行凭证：后台只下发二维码内容 content（签名 token），图片由前端自己画；
+  // 状态不满足时返回 { success:false, code, msg }
+  visitorQrcode: (id: string) => api(`/m/visitor/qrcode?id=${encodeURIComponent(id)}`),
 };
 
 declare global {

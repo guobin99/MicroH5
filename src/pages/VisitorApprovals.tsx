@@ -6,7 +6,7 @@ import { useApp } from '../context/AppContext';
 import { m } from '../lib/api';
 import type { VisitorRecord } from '../data/mock';
 
-interface CardOption { cardNo: string; remark: string }
+interface CardOption { cardNo: string; remark?: string; personName?: string; personNo?: string; validDate?: string }
 
 export default function VisitorApprovals(): React.JSX.Element {
   const [, setLocation] = useLocation();
@@ -149,7 +149,7 @@ export default function VisitorApprovals(): React.JSX.Element {
                 <Radio value="">自动分配空闲卡</Radio>
                 {cards.map((c) => (
                   <Radio key={c.cardNo} value={c.cardNo}>
-                    指定卡号 {c.cardNo}{c.remark ? `（${c.remark}）` : ''}
+                    指定卡号 {c.cardNo}{c.personName || c.remark ? `（${c.personName || c.remark}）` : ''}
                   </Radio>
                 ))}
               </div>
