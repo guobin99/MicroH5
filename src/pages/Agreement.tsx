@@ -16,19 +16,7 @@ const privacy = [
   '关键接口使用签名校验、防重放、频率限制和全链路HTTPS保护。',
 ];
 
-/** 订餐服务协议（订餐页《订餐服务协议》跳转 ?tab=order） */
-const orderAgreement = [
-  '订餐模式：平台按后台配置提供「订餐扣款」与「消费扣款」两种模式，以订餐页显示的模式为准。订餐扣款模式下提交订单即从一卡通余额扣款；消费扣款模式下提交订单不扣款，取餐时才扣款。',
-  '订餐开放范围：仅开放订餐的餐别可预订，未开放订餐的餐别不在订餐选项中展示，也无法提交订单。',
-  '提前预定与截止时间：每个餐别可设置需提前预定的天数与截止时间，需在该截止时间前完成预定；超过截止时间后，该用餐日期的预订入口将关闭。',
-  '份数限制：菜品按每日可订份数限量，剩余份数为总份数扣除已预定份数，份数售罄后不可继续下单。',
-  '同一用餐日期、同一餐别不可重复订餐，提交时系统会校验并拦截重复订单。',
-  '退订：需在该餐别订餐截止时间前完成退订操作，逾期后不可退订。',
-  '退款说明：订餐扣款模式下退订，金额原路退回一卡通余额；消费扣款模式下订餐时未扣款，退订仅取消订单，不产生退款。',
-  '订单以「用餐日期 + 餐别」为一张独立订单，不同用餐日期或不同餐别分别生成订单，份数与截止时间按各自订单单独校验。',
-];
-
-type AgreementTab = 'privacy' | 'agreement' | 'order';
+type AgreementTab = 'privacy' | 'agreement';
 
 export default function Agreement(): React.JSX.Element {
   const [, setLocation] = useLocation();
@@ -36,16 +24,15 @@ export default function Agreement(): React.JSX.Element {
   const search = useSearch();
   // 支持深链指定初始 Tab：
   //   ?tab=agreement → 用户协议（充值页《充值服务协议》跳转，充值条款在“用户协议”内）
-  //   ?tab=order    → 订餐服务协议（订餐页《订餐服务协议》跳转）
+  // 订餐服务协议已改为订餐页内弹窗，不再出现在本页
   const [tab, setTab] = useState<AgreementTab>(() => {
     const q = search || '';
-    if (q.indexOf('tab=order') >= 0) return 'order';
     if (q.indexOf('tab=agreement') >= 0) return 'agreement';
     return 'privacy';
   });
 
-  const list = tab === 'privacy' ? privacy : (tab === 'order' ? orderAgreement : userAgreement);
-  const title = tab === 'privacy' ? '隐私政策摘要' : (tab === 'order' ? '订餐服务协议' : '用户协议摘要');
+  const list = tab === 'privacy' ? privacy : userAgreement;
+  const title = tab === 'privacy' ? '隐私政策摘要' : '用户协议摘要';
 
   return (
     <div className="min-h-screen bg-[#F5F7FA]">
@@ -53,7 +40,6 @@ export default function Agreement(): React.JSX.Element {
       <Tabs activeKey={tab} onChange={(key) => setTab(key as AgreementTab)} className="bg-white">
         <Tabs.Tab title="隐私政策" key="privacy" />
         <Tabs.Tab title="用户协议" key="agreement" />
-        <Tabs.Tab title="订餐服务" key="order" />
       </Tabs>
       <div className="p-4 space-y-4">
         <Card className="!rounded-2xl !border !border-gray-100">

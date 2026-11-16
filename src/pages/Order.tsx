@@ -4,6 +4,7 @@ import { Button, Card, Checkbox, Dialog, NavBar, Tabs, Toast } from 'antd-mobile
 import { CheckCircleOutlined, CoffeeOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useApp } from '../context/AppContext';
+import OrderAgreementModal from '../components/OrderAgreementModal';
 import { m } from '../lib/api';
 import {
   formatMoney, makeId, isOrderableRepast, isDateOrderable,
@@ -57,6 +58,7 @@ export default function Order(): React.JSX.Element {
   const [selectedDates, setSelectedDates] = useState<string[]>([dayjs().add(1, 'day').format('YYYY-MM-DD')]);
   const [selectedMeals, setSelectedMeals] = useState<string[]>([]);
   const [agreed, setAgreed] = useState(false);
+  const [policyOpen, setPolicyOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [repastList, setRepastList] = useState<RepastRule[]>([]);
   const [orderMode, setOrderMode] = useState<OrderModeInfo>({
@@ -446,7 +448,7 @@ export default function Order(): React.JSX.Element {
             我已阅读并同意
             <span
               className="text-[#0064E6] underline mx-0.5"
-              onClick={() => setLocation('/agreement?tab=order')}
+              onClick={() => setPolicyOpen(true)}
             >
               《订餐服务协议》
             </span>
@@ -459,6 +461,12 @@ export default function Order(): React.JSX.Element {
           {needBalanceCheck ? `确认支付 ¥${formatMoney(total)}` : `确认订餐 ¥${formatMoney(total)}`}
         </Button>
       </div>
+
+      <OrderAgreementModal
+        visible={policyOpen}
+        onClose={() => setPolicyOpen(false)}
+        onAgree={() => { setAgreed(true); setPolicyOpen(false); }}
+      />
     </div>
   );
 }
